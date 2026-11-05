@@ -1,0 +1,57 @@
+# Ejemplo de referencia para el ejercicio 1. No se ejecuta en este repositorio.
+# Muestra cómo se organizaría el CI/CD del pipeline de teléfonos en GitHub Actions.
+
+name: dataset-telefonos
+
+on:
+  pull_request:
+    paths: ["pipelines/telefonos/**"]
+  push:
+    branches: [main]
+    paths: ["pipelines/telefonos/**"]
+
+jobs:
+  validar:
+    runs-on: [self-hosted, datos]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r pipelines/telefonos/requirements.txt
+
+      - name: Lint de SQL y Python
+        run: |
+          sqlfluff lint pipelines/telefonos/models --dialect impala
+          ruff check pipelines/telefonos
+
+      - name: Pruebas de las reglas de normalización
+        run: pytest pipelines/telefonos/tests -q
+
+      - name: Pipeline completo con datos sintéticos
+        # Corre todas las transformaciones y los controles de calidad sobre un
+        # conjunto generado, sin teléfonos reales, en un esquema temporal del
+        # ambiente de desarrollo. Para llegar al clúster, este job y los de
+        # despliegue corren en un runner propio dentro de la red de la compañía.
+        run: |
+          python pipelines/telefonos/tools/generar_sinteticos.py --clientes 5000
+          dbt build --project-dir pipelines/telefonos --target ci
+
+  desplegar-qa:
+    if: github.ref == 'refs/heads/main'
+    needs: validar
+    runs-on: [self-hosted, datos]
+    environment: qa
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./pipelines/telefonos/deploy.sh qa
+
+  desplegar-prod:
+    needs: desplegar-qa
+    runs-on: [self-hosted, datos]
+    # El environment "prod" tiene revisores obligatorios: alguien distinto al
+    # autor del cambio tiene que aprobar el despliegue.
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./pipelines/telefonos/deploy.sh prod

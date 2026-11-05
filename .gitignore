@@ -1,0 +1,16 @@
+# Base generada por cargar_datos.py
+*.db
+*.csv
+
+# Salidas del ejercicio 4
+*.base64.html
+*.base64.htm
+reporte*.json
+
+# Enunciado de la prueba
+enunciado_prueba.pdf
+
+__pycache__/
+*.pyc
+.venv/
+.DS_Store

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Página de ejemplo</title>
+</head>
+<body>
+  <!-- Imagen relativa normal -->
+  <img src="img/logo.png" alt="Logo">
+
+  <!-- SVG con comillas simples y atributo en mayúsculas -->
+  <IMG SRC='img/icono.svg' width="16">
+
+  <!-- data-src no se debe tocar, solo src -->
+  <img data-src="img/banner.png" src="img/banner.png" alt="Banner" />
+
+  <!-- Casos que deben fallar -->
+  <img src="img/no_existe.jpg" alt="Archivo que no existe">
+  <img src="img/notas.png" alt="Tiene extensión de imagen pero es texto">
+  <img alt="Sin src">
+  <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="Ya embebida">
+</body>
+</html>
